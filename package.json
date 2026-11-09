@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "tsc -b packages/core packages/native packages/node packages/bun",
+    "build": "tsc -b packages/core packages/native packages/node packages/bun && node scripts/helpers/setClientVersion.mjs",
     "typecheck": "bun run --cwd packages/core build && bun run --filter \"@neuroinfoapi-client/*\" typecheck",
     "publishPackage": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/publishAsk.ps1",
     "deprecatePackage": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/deprecateAsk.ps1",

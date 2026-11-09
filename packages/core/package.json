@@ -1,6 +1,6 @@
 {
   "name": "@neuroinfoapi-client/core",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "Shared HTTP client, types and WebSocket protocol logic for NeuroInfoAPI-Client (Bun, Node.js, Native)",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,7 +18,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -b && node ../../scripts/helpers/setClientVersion.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "publishPackage": "powershell -NoProfile -ExecutionPolicy Bypass -File ../../scripts/publishAsk.ps1 -Package core",
     "deprecatePackage": "powershell -NoProfile -ExecutionPolicy Bypass -File ../../scripts/deprecateAsk.ps1 -Package core"

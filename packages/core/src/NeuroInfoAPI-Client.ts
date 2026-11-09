@@ -17,6 +17,8 @@ const enum SubscriptionState {
 }
 
 const apiVersion = "v2";
+const clientVersion = "{*gets set when build*}";
+const userAgent = `niac_js@${clientVersion}`;
 const defaultApiBaseUrl = `neuroinfoapi.dev/api/${apiVersion}`;
 
 function invokeSafely(callback: (...args: any[]) => unknown, ...args: any[]): void {
@@ -65,7 +67,7 @@ async function bootCheck(baseUrlOrApiBase: string, clientApiVer: string = apiVer
 
   try {
     const infoUrl = `${baseUrlOrApiBase.replace(/\/api\/v\d+.*$/, "/api")}/info`;
-    const resp = await fetch(infoUrl);
+    const resp = await fetch(infoUrl, { headers: { "User-Agent": userAgent } });
     if (!resp.ok) return;
     const json = await resp.json();
     const latestVersion = typeof json?.data?.latestVersion === "string" ? json.data.latestVersion : null;
@@ -133,7 +135,7 @@ export class HttpClient {
 
   constructor(options: HttpClientOptions = {}) {
     const timeout = options.timeout == null || !Number.isFinite(options.timeout) || options.timeout < 0 ? 10000 : options.timeout;
-    this.config = { baseURL: options.baseURL ?? "", timeout, headers: options.headers ?? {} };
+    this.config = { baseURL: options.baseURL ?? "", timeout, headers: { "User-Agent": userAgent, ...options.headers } };
   }
 
   /** @deprecated Use `new HttpClient(options)` instead. */
@@ -639,6 +641,7 @@ export class NeuroInfoApiEventer {
  * REST API before connecting, so the token is never exposed in URL query parameters.
  */
 export abstract class NeuroInfoApiWebsocketClient {
+  protected readonly userAgent = userAgent;
   protected abstract createWSController(url: string, headers?: Record<string, string>): WSController;
 
   private connection: WsConnectionState | null = null;

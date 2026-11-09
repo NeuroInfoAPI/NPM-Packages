@@ -17,7 +17,8 @@ try {
     else {
         Get-Command pnpm.cmd -ErrorAction Stop | Out-Null
         $lock = Join-Path $WorkspaceRoot 'pnpm-lock.yaml'
-        foreach ($file in @($packages.Path) + @($lock)) {
+        $clientOutput = Join-Path $WorkspaceRoot 'packages/core/dist/NeuroInfoAPI-Client.js'
+        foreach ($file in @($packages.Path) + @($lock, $clientOutput)) {
             $backup[$file] = if (Test-Path -LiteralPath $file) { [IO.File]::ReadAllBytes($file) } else { $null }
         }
         foreach ($package in $packages) {
@@ -26,6 +27,8 @@ try {
         }
         Sync-CoreDependency $packages
         Invoke-WorkspacePnpm -Arguments @('install', '--lockfile-only', '--ignore-scripts')
+        & node (Join-Path $PSScriptRoot 'helpers/setClientVersion.mjs') -IfExists
+        if ($LASTEXITCODE -ne 0) { throw 'Could not update compiled client version.' }
         Write-Host "All package versions set to $Version; lockfile updated." -ForegroundColor Green
     }
 } catch {

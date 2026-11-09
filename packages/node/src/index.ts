@@ -21,6 +21,6 @@ export class NeuroInfoApiWebsocketClient extends SharedWebsocketClient {
   public override set heartbeatTimeoutMs(_value: number) {}
 
   protected createWSController(url: string, headers?: Record<string, string>): SharedWSController {
-    return new WSController(url, headers);
+    return new WSController(url, { "User-Agent": this.userAgent, ...headers });
   }
 }

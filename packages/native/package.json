@@ -1,6 +1,6 @@
 {
   "name": "@neuroinfoapi-client/native",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "A client for interacting with the NeuroInfoAPI (Native edition)",
   "type": "module",
   "main": "./dist/index.js",
@@ -42,7 +42,7 @@
   },
   "homepage": "https://neuroinfoapi.dev/api/docs",
   "dependencies": {
-    "@neuroinfoapi-client/core": "2.6.0"
+    "@neuroinfoapi-client/core": "2.6.1"
   },
   "publishConfig": {
     "access": "public"
