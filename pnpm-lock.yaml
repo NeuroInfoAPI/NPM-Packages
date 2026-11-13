@@ -21,7 +21,7 @@ importers:
   packages/bun:
     dependencies:
       '@neuroinfoapi-client/core':
-        specifier: 2.6.1
+        specifier: 2.7.0
         version: link:../core
     devDependencies:
       '@types/bun':
@@ -33,13 +33,13 @@ importers:
   packages/native:
     dependencies:
       '@neuroinfoapi-client/core':
-        specifier: 2.6.1
+        specifier: 2.7.0
         version: link:../core
 
   packages/node:
     dependencies:
       '@neuroinfoapi-client/core':
-        specifier: 2.6.1
+        specifier: 2.7.0
         version: link:../core
       ws:
         specifier: ^8.22.1

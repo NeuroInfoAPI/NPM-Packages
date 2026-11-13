@@ -1,6 +1,6 @@
 {
   "name": "@neuroinfoapi-client/native",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "description": "A client for interacting with the NeuroInfoAPI (Native edition)",
   "type": "module",
   "main": "./dist/index.js",
@@ -33,16 +33,16 @@
   "author": "Appstun",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/NeuroInfoAPI/NPM-Package/issues"
+    "url": "https://github.com/NeuroInfoAPI/NPM-Packages/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/NeuroInfoAPI/NPM-Package.git",
+    "url": "https://github.com/NeuroInfoAPI/NPM-Packages.git",
     "directory": "packages/native"
   },
   "homepage": "https://neuroinfoapi.dev/api/docs",
   "dependencies": {
-    "@neuroinfoapi-client/core": "2.6.1"
+    "@neuroinfoapi-client/core": "2.7.0"
   },
   "publishConfig": {
     "access": "public"

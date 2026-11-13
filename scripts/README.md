@@ -5,6 +5,19 @@ Bun and Windows PowerShell.
 
 ## Releases
 
+### GitHub Actions
+
+Set versions, commit and push, then open **Actions -> Publish npm packages -> Run
+workflow**. Select the branch and packages; uncheck `dry_run` to publish via OIDC.
+The workflow runs manually only and needs no npm token.
+
+Setup for all four npm packages: add a GitHub Actions trusted publisher with owner
+`NeuroInfoAPI`, repository `NPM-Packages`, workflow `publish.yml`, no environment,
+and direct `npm publish` enabled. Push the workflow to the default branch first;
+complete the first publish within two days of configuring the trusted publisher.
+
+### Local commands
+
 ```powershell
 pnpm run publishPackage -- -DryRun       # Build, typecheck and pack locally
 pnpm run publishPackage                 # Publish all packages, Core first

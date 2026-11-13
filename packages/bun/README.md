@@ -9,7 +9,7 @@ A comprehensive TypeScript/JavaScript client that provides full access to NeuroI
 
 ## Features
 
-- HTTP access to streams, VODs, schedules, subathons, blog and X feeds
+- HTTP access to streams, VODs, schedules, subathons, shop products, blog and X feeds
 - Full TypeScript support with typed API responses and event payloads
 - HTTP Bearer authentication with an optional token in the constructor
 - Type-safe HTTP error handling through `{ data, error }`
@@ -133,6 +133,8 @@ All methods below return `Promise<ApiResult<T>>`:
 - `getSubathon(year)` — subathon data for a year
 - `getSubathonYears()` — available subathon years
 - `getBlogFeed(raw?)` — Neuro-sama blog feed; requires an API token
+- `getShopProducts(currency?)` — shop catalog; requires an API token
+- `getShopProduct(id, currency?)` — one shop product; requires an API token
 - `getXFeed(user)` — cached X feed for `NeurosamaAI`, `EvilNeuroAI`, or `Vedal987`; requires an API token
 
 ## Schedule Search Pagination
@@ -240,6 +242,7 @@ Available WebSocket events:
 - `scheduleUpdate`
 - `subathonUpdate`
 - `subathonGoalUpdate`
+- `shopProductsUpdate`
 - `blogFeedUpdate`
 - `xFeedNewEntries`
 - `xFeedUpdate` (deprecated alias for `xFeedNewEntries`)
