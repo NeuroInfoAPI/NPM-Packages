@@ -120,6 +120,7 @@ if (error) {
 All methods below return `Promise<ApiResult<T>>`:
 
 - `getCurrentStream()` — current Twitch stream state
+- `getScheduleLinkedStreams()` — Twitch channels watched right now because a schedule entry takes place on them (e.g. `(on secretneuroaccount)` or collab partners)
 - `getAllVods()` — all Twitch VODs
 - `getVod(id)` — a VOD by stream ID
 - `getSchedule(week, year?)` — schedule for a specific week and optional year
@@ -235,6 +236,9 @@ Available WebSocket events:
 - `streamOffline`
 - `streamUpdate`
 - `secretneuroaccountOnline`
+- `scheduleLinkedStreamOnline`
+- `scheduleLinkedStreamUpdate`
+- `scheduleLinkedStreamOffline`
 - `streamRaidIncoming`
 - `streamRaidOutgoing`
 - `scheduleUpdate`
@@ -244,6 +248,22 @@ Available WebSocket events:
 - `blogFeedUpdate`
 - `xFeedNewEntries`
 - `xFeedUpdate` (deprecated alias for `xFeedNewEntries`)
+
+The `scheduleLinkedStream*` events cover Twitch channels linked in schedule entries, e.g. `(on secretneuroaccount) Evil Stream` (`linkType: "on"`) or collab partners (`linkType: "collab"`); see the [WebSocket docs](https://github.com/Appstun/NeuroInfoAPI-Docs/blob/master/websocket.md#schedule-linked-stream-events).
+Import `Utils` from the package to check their fields:
+
+Helpers: `isLinkTypeOn`/`isLinkTypeCollab`, `isTriggerStreamStart`/`isTriggerFetch`/`isTriggerScheduleTime`, `isReasonStreamEnd`/`isReasonNoShow`/`isReasonScheduleRemoved`/`isReasonTimeout`, `didLinkedStreamHappen` (`streamEnd` or `timeout`) and `isLinkedStreamLive`, which also narrows `stream` to the live data.
+
+```ts
+wsClient.on("scheduleLinkedStreamOnline", (data) => {
+  if (Utils.isTriggerScheduleTime(data) && !Utils.isLinkedStreamLive(data)) return; // scheduled time reached, but not live yet
+  if (Utils.isLinkedStreamLive(data)) console.log(`${data.channel.displayName} is live: ${data.stream.title}`);
+});
+
+wsClient.on("scheduleLinkedStreamOffline", (data) => {
+  if (Utils.isReasonNoShow(data)) console.log(`${data.channel.displayName} did not stream`);
+});
+```
 
 **Heartbeat:** While connected, the client periodically sends a JSON `ping` and expects a `pong` from the server (default interval **30s**, pong timeout **10s**). If the pong is missing, the socket is closed and automatic reconnect runs—this detects stale or half-open connections. Disable or tune via constructor options: `heartbeatMonitoring`, `heartbeatIntervalMs` (minimum 5000), `heartbeatTimeoutMs` (minimum 1000). Keep the ping interval below the server WebSocket idle timeout if you self-host with aggressive idle limits.
 
