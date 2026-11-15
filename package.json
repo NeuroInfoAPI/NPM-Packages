@@ -8,7 +8,6 @@
   "scripts": {
     "build": "tsc -b packages/core packages/native packages/node packages/bun && node scripts/helpers/setClientVersion.mjs",
     "typecheck": "bun run --cwd packages/core build && bun run --filter \"@neuroinfoapi-client/*\" typecheck",
-    "publishPackage": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/publishAsk.ps1",
     "deprecatePackage": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/deprecateAsk.ps1",
     "clean": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/clean.ps1",
     "setVersions": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/setVersions.ps1",

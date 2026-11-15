@@ -5,37 +5,39 @@ Bun and Windows PowerShell.
 
 ## Releases
 
-### GitHub Actions
+### Publishing (GitHub Actions)
 
 Set versions, commit and push, then open **Actions -> Publish npm packages -> Run
-workflow**. Select the branch and packages; uncheck `dry_run` to publish via OIDC.
-The workflow runs manually only and needs no npm token.
+workflow** ([publish.yml](../.github/workflows/publish.yml)). Select the branch and
+packages. The workflow builds,
+typechecks, packs and publishes all selected packages in parallel via npm Trusted
+Publishing (OIDC): no npm token and no 2FA prompt, provenance is added automatically.
 
-Setup for all four npm packages: add a GitHub Actions trusted publisher with owner
-`NeuroInfoAPI`, repository `NPM-Packages`, workflow `publish.yml`, no environment,
-and direct `npm publish` enabled. Push the workflow to the default branch first;
-complete the first publish within two days of configuring the trusted publisher.
+- Core is always included, since the other packages pin its exact version.
+- Identical, already published versions are skipped; changed contents need a version bump.
+- Stable releases use `latest`, prereleases their identifier (`beta`, `rc`, etc.) or
+  `next` for numeric identifiers.
+- Uploads run in parallel without waiting for Core to become readable, so dependents
+  may briefly reference a Core version npm is still processing. On failure, rerun.
 
-### Local commands
+One-time setup for each of the four npm packages (npmjs.com -> package -> Settings ->
+Trusted Publisher -> GitHub Actions): owner `NeuroInfoAPI`, repository `NPM-Packages`,
+workflow `publish.yml`, no environment, **Allow npm publish** checked
+(dist-tag not needed). The workflow must be on the default branch to
+be runnable. Afterwards, "Require two-factor authentication and disallow tokens" can be
+enabled in the package settings.
+
+### Deprecating
 
 ```powershell
-pnpm run publishPackage -- -DryRun       # Build, typecheck and pack locally
-pnpm run publishPackage                 # Publish all packages, Core first
-pnpm run publishPackage -- -Package node # Publish Core and Node only
 pnpm run deprecatePackage               # Choose package, versions and message
 ```
 
-Publishing prompts for an npm token and skips identical published versions;
-changed contents require a version bump. Stable releases use `latest`, prereleases
-their identifier (`beta`, `rc`, etc.) or `next` for numeric identifiers.
-
-npm may accept an upload before it becomes readable. Publishing waits up to two
-minutes for Core and checks identical contents after version conflicts. If npm is
-still processing the version, wait and rerun; a version bump is not needed to resume.
-
-Deprecation targets `core`, `native`, `node`, `bun`, or `legacy`
-(`neuroinfoapi-client`). Both commands accept `-DryRun` without registry changes;
-publish permissions are not checked.
+Trusted Publishing only covers `npm publish`, so deprecating stays local: it starts an
+interactive `npm login` (browser + passkey) into a temporary npmrc, runs
+`npm deprecate` (confirm with the passkey again via npm's link) and revokes the
+session via `npm logout` afterwards. Targets are `core`, `native`, `node`, `bun`, or
+`legacy` (`neuroinfoapi-client`). `-DryRun` makes no registry changes.
 
 ## Maintenance
 

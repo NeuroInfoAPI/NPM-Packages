@@ -20,7 +20,6 @@
   "scripts": {
     "build": "tsc -b && node ../../scripts/helpers/setClientVersion.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "publishPackage": "powershell -NoProfile -ExecutionPolicy Bypass -File ../../scripts/publishAsk.ps1 -Package core",
     "deprecatePackage": "powershell -NoProfile -ExecutionPolicy Bypass -File ../../scripts/deprecateAsk.ps1 -Package core"
   },
   "publishConfig": {

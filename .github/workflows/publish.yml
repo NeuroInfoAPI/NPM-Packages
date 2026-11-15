@@ -1,0 +1,49 @@
+name: Publish npm packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Packages to publish (Core is always included; identical versions are skipped)
+        type: choice
+        options: [all, core, native, node, bun]
+        default: all
+
+permissions:
+  contents: read
+  id-token: write # npm Trusted Publishing (OIDC) and provenance
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.18.0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: oven-sh/setup-bun@v2
+
+      # Trusted Publishing needs npm >= 11.5.1.
+      - run: npm install -g npm@11 && npm --version
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run build
+
+      - run: pnpm run typecheck
+
+      - name: Publish
+        env:
+          PACKAGE: ${{ inputs.package }}
+        run: node scripts/helpers/publish.mjs --package "$PACKAGE"

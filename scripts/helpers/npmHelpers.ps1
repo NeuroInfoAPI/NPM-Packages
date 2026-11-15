@@ -1,4 +1,8 @@
-# Tokens are never written to disk; the temporary npmrc contains a variable reference.
+# npm requires 2FA for deprecate (granular tokens can no longer bypass it). Publishing runs
+# via GitHub Actions (.github/workflows/publish.yml) with Trusted Publishing instead.
+# Authentication uses an interactive `npm login` (web/2FA) into a temporary npmrc;
+# the session token is revoked via `npm logout` and the file deleted afterwards.
+$script:NpmRegistry = 'https://registry.npmjs.org/'
 function Invoke-Npm {
     param([string[]]$Arguments)
     $ErrorActionPreference = 'Continue'
@@ -11,44 +15,55 @@ function Invoke-NpmChecked {
     if ($result.ExitCode -ne 0) { throw "npm $($Arguments[0]) failed: $($result.Output)" }
     return $result.Output
 }
-function Wait-NpmPackageIntegrity {
-    param([string]$PackageId, [string]$Integrity, [int]$Attempts = 24, [int]$DelaySeconds = 5)
-    for ($attempt = 0; $attempt -lt $Attempts; $attempt++) {
-        $check = Invoke-Npm -Arguments @('view', $PackageId, 'dist.integrity', '--json', '--prefer-online', '--registry=https://registry.npmjs.org/')
-        if ($check.ExitCode -eq 0) {
-            if (($check.Output | ConvertFrom-Json) -ne $Integrity) { throw "$PackageId already exists with different contents. Bump its version before publishing." }
-            return $true
-        }
-        if ($check.Output -notmatch 'E404') { throw "Registry check failed for ${PackageId}: $($check.Output)" }
-        if ($attempt -lt $Attempts - 1) { Start-Sleep -Seconds $DelaySeconds }
+function ConvertTo-ProcessArgument {
+    param([string]$Value)
+    if ($Value -and $Value -notmatch '[\s"]') { return $Value }
+    return '"' + (($Value -replace '(\\*)"', '$1$1\"') -replace '(\\+)$', '$1$1') + '"'
+}
+function Get-NpmCommandLine {
+    param([string[]]$Arguments)
+    $npmCli = Join-Path (Split-Path -Parent (Get-Command npm.cmd).Source) 'node_modules/npm/bin/npm-cli.js'
+    if (!(Test-Path -LiteralPath $npmCli)) { throw "npm CLI not found at $npmCli." }
+    return [PSCustomObject]@{
+        Node = (Get-Command node.exe).Source
+        Arguments = (@($npmCli) + $Arguments | ForEach-Object { ConvertTo-ProcessArgument $_ }) -join ' '
     }
-    return $false
+}
+# Runs npm attached to the console (used for login, which shows its own browser link).
+# Uses node + npm-cli.js directly to avoid cmd.exe re-parsing arguments.
+function Invoke-NpmInteractive {
+    param([string[]]$Arguments)
+    $command = Get-NpmCommandLine $Arguments
+    $process = Start-Process -FilePath $command.Node -ArgumentList $command.Arguments -NoNewWindow -Wait -PassThru
+    return $process.ExitCode
 }
 function Start-NpmAuthentication {
-    $secure = Read-Host 'NPM Auth Token (hidden input, required)' -AsSecureString
-    if ($secure.Length -eq 0) { $secure.Dispose(); throw 'NPM auth token is required.' }
-    $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
     $state = [PSCustomObject]@{
-        Token = $env:NPM_TOKEN
         UserConfig = $env:NPM_CONFIG_USERCONFIG
         ConfigPath = Join-Path $env:TEMP ('npmrc-release-' + [Guid]::NewGuid().ToString() + '.npmrc')
+        LoggedIn = $false
     }
     try {
-        Set-Content -LiteralPath $state.ConfigPath -Encoding ASCII -Value @(
-            'registry=https://registry.npmjs.org/'
-            '//registry.npmjs.org/:_authToken=${NPM_TOKEN}'
-        )
-        $env:NPM_TOKEN = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+        Set-Content -LiteralPath $state.ConfigPath -Encoding ASCII -Value "registry=$script:NpmRegistry"
         $env:NPM_CONFIG_USERCONFIG = $state.ConfigPath
+        Write-Host 'Logging in to npm. Press ENTER to open the link, then sign in and confirm with your passkey in the browser.' -ForegroundColor Cyan
+        $exitCode = Invoke-NpmInteractive -Arguments @('login', '--auth-type=web', "--registry=$script:NpmRegistry")
+        if ($exitCode -ne 0) { throw "npm login failed (exit code $exitCode)." }
+        $state.LoggedIn = $true
+        $user = Invoke-NpmChecked -Arguments @('whoami', "--registry=$script:NpmRegistry")
+        Write-Host "Logged in as $user. npm asks for passkey confirmation in the browser again for the deprecation." -ForegroundColor Green
         return $state
     } catch { Stop-NpmAuthentication -State $state; throw }
-    finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr); $secure.Dispose() }
 }
 function Stop-NpmAuthentication {
     param($State)
     if ($null -eq $State) { return }
-    $env:NPM_TOKEN = $State.Token
+    if ($State.LoggedIn) {
+        # Revokes the session token on the registry.
+        $logout = Invoke-Npm -Arguments @('logout', "--registry=$script:NpmRegistry")
+        if ($logout.ExitCode -ne 0) { Write-Host "npm logout failed; revoke the session manually under npmjs.com > Access Tokens. $($logout.Output)" -ForegroundColor Yellow }
+        $State.LoggedIn = $false
+    }
     $env:NPM_CONFIG_USERCONFIG = $State.UserConfig
     if (Test-Path -LiteralPath $State.ConfigPath) { Remove-Item -LiteralPath $State.ConfigPath -Force }
-    $State.Token = $null
 }

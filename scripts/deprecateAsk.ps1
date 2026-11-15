@@ -19,7 +19,8 @@ try {
     if ($DryRun) { Write-Host 'Dry run only. No registry changes.' -ForegroundColor Green }
     else {
         $auth = Start-NpmAuthentication
-        Write-Host (Invoke-NpmChecked -Arguments @('deprecate', $spec, $Message, '--registry=https://registry.npmjs.org/'))
+        $exitCode = Invoke-NpmInteractive -Arguments @('deprecate', $spec, $Message, '--registry=https://registry.npmjs.org/')
+        if ($exitCode -ne 0) { throw "npm deprecate failed (exit code $exitCode, see npm output above)." }
         Write-Host 'Deprecated successfully.' -ForegroundColor Green
     }
 } catch { Write-Host $_ -ForegroundColor Red; exit 1 }
