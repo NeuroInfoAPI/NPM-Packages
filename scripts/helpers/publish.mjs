@@ -1,6 +1,6 @@
 // Packs and publishes the workspace packages. Used by .github/workflows/publish.yml
 // (npm Trusted Publishing via OIDC, no token or 2FA prompt needed).
-// Usage: node scripts/helpers/publish.mjs [--package all|core|native|node|bun]
+// Usage: node scripts/helpers/publish.mjs (always all packages)
 // Expects `npm run build` to have run. Identical, already published versions are skipped.
 import { execFile } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -12,12 +12,7 @@ const registry = "https://registry.npmjs.org/";
 const repository = "https://github.com/NeuroInfoAPI/NPM-Packages.git";
 const order = ["core", "native", "node", "bun"];
 
-const argv = process.argv.slice(2);
-const packageIndex = argv.indexOf("--package");
-const target = packageIndex >= 0 ? argv[packageIndex + 1] : "all";
-if (target !== "all" && !order.includes(target)) throw new Error(`Unknown package "${target}". Use all, ${order.join(", ")}.`);
-// Dependents pin the exact Core version, so Core is always included (skipped if identical).
-const selected = target === "all" ? order : target === "core" ? ["core"] : ["core", target];
+const selected = order;
 
 const run = promisify(execFile);
 // On Windows npm.cmd would need a shell; run npm's JS entry point with node instead.

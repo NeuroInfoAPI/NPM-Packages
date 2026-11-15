@@ -8,12 +8,10 @@ Bun and Windows PowerShell.
 ### Publishing (GitHub Actions)
 
 Set versions, commit and push, then open **Actions -> Publish npm packages -> Run
-workflow** ([publish.yml](../.github/workflows/publish.yml)). Select the branch and
-packages. The workflow builds,
-typechecks, packs and publishes all selected packages in parallel via npm Trusted
+workflow** ([publish.yml](../.github/workflows/publish.yml)). The workflow builds,
+typechecks, packs and publishes all packages in parallel via npm Trusted
 Publishing (OIDC): no npm token and no 2FA prompt, provenance is added automatically.
 
-- Core is always included, since the other packages pin its exact version.
 - Identical, already published versions are skipped; changed contents need a version bump.
 - Stable releases use `latest`, prereleases their identifier (`beta`, `rc`, etc.) or
   `next` for numeric identifiers.

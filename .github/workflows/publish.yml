@@ -1,13 +1,7 @@
 name: Publish npm packages
 
 on:
-  workflow_dispatch:
-    inputs:
-      package:
-        description: Packages to publish (Core is always included; identical versions are skipped)
-        type: choice
-        options: [all, core, native, node, bun]
-        default: all
+  workflow_dispatch: # Publishes all packages; identical, already published versions are skipped.
 
 permissions:
   contents: read
@@ -44,6 +38,4 @@ jobs:
       - run: pnpm run typecheck
 
       - name: Publish
-        env:
-          PACKAGE: ${{ inputs.package }}
-        run: node scripts/helpers/publish.mjs --package "$PACKAGE"
+        run: node scripts/helpers/publish.mjs
