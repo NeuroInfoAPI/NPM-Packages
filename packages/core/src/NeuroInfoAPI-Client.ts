@@ -1964,6 +1964,8 @@ export interface ScheduleEntry {
   time: number; // Unix timestamp in milliseconds
   message: string;
   type: ScheduleEntryType;
+  /** Segments printed on the schedule image, e.g. `["MINIGAMES", "SKYRIM"]`; empty when there are none. */
+  segments: string[];
 }
 
 export interface SubathonData {
